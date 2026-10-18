@@ -10,6 +10,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const ENV = {
+  FIRMS_MAP_KEY: process.env.FIRMS_MAP_KEY || "",
   PORT: process.env.PORT ? parseInt(process.env.PORT, 10) : 5000,
   NODE_ENV: process.env.NODE_ENV || "development",
   MONGODB_URI: process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/buktipulih_db",

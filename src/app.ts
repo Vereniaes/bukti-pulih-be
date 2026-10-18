@@ -16,6 +16,7 @@ import { bnpbRoutes } from "./modules/bnpb/bnpb.routes.js";
 import { timelineRoutes } from "./modules/timeline/timeline.routes.js";
 import { reportRoutes } from "./modules/reports/report.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
+import { hotspotRoutes } from "./modules/hotspots/hotspot.routes.js";
 
 const app: Application = express();
 
@@ -57,6 +58,7 @@ app.get("/health", (_req: Request, res: Response) => {
 app.use("/api/v1/plots", plotRoutes);
 app.use("/api/v1/metrics", metricsRoutes);
 app.use("/api/v1/external", bnpbRoutes);
+app.use("/api/v1/external", hotspotRoutes);
 app.use("/api/v1/timeline", timelineRoutes);
 app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/auth", authRoutes);

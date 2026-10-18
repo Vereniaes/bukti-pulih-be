@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed": "tsx src/scripts/seed.ts",
-    "test:qa": "tsx src/scripts/qa-test.ts"
+    "test:qa": "tsx src/scripts/qa-test.ts",
+    "test:hotspots": "tsx --test src/modules/hotspots/hotspot.test.ts"
   },
   "keywords": [
     "buktipulih",
@@ -23,6 +24,7 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "csv-parse": "^7.0.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
