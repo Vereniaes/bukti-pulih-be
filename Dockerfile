@@ -3,7 +3,7 @@
 #      -> stage 1 (builder): instalasi dependensi dan kompilasi typescript ke javascript
 #      -> stage 2 (runner): container produksi minimal berbasis alpine untuk efisiensi cloud run
 
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS builder
 WORKDIR /app
 
 # salin berkas manifes dependensi paket ----------------------------------------
@@ -17,7 +17,7 @@ COPY src ./src
 RUN npm run build
 
 # tahap runner produksi minimal -----------------------------------------------
-FROM node:20-alpine AS runner
+FROM node:24-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -25,7 +25,7 @@ ENV PORT=8080
 
 # instalasi hanya dependensi produksi (tanpa devDependencies) -----------------
 COPY package*.json ./
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # salin hasil kompilasi dari builder stage -------------------------------------
 COPY --from=builder /app/dist ./dist
