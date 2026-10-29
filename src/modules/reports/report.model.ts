@@ -1,8 +1,7 @@
-// src/modules/reports/report.model.ts
-// -> skema dan model koleksi laporan lapangan kader (reports_inbox)
-//      -> data kondisi tanaman, pengukuran tinggi, dan foto lapangan
-//      -> validasi silang koordinat gps terhadap petak (anti-geotag spoofing)
+// Todo:
+// -> Store plot reports and their review status.
 
+// --- Report storage ---
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IReportInbox extends Document {
@@ -63,3 +62,4 @@ export const ReportInboxModel = mongoose.model<IReportInbox>(
   "ReportInbox",
   ReportInboxSchema
 );
+// --- end of Report storage ---

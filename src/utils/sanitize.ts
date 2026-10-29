@@ -1,8 +1,7 @@
-// src/utils/sanitize.ts
-// -> penyaringan konten teks untuk pencegahan stored xss
-//      -> membersihkan tag script dan elemen berbahaya
-//      -> menyaring kata terlarang dan spam
+// Todo:
+// -> Trim text and remove HTML tags and attributes.
 
+// --- Text input ---
 import sanitizeHtml from "sanitize-html";
 
 export const sanitizeTextInput = (input: string): string => {
@@ -12,3 +11,4 @@ export const sanitizeTextInput = (input: string): string => {
     allowedAttributes: {},
   });
 };
+// --- end of Text input ---

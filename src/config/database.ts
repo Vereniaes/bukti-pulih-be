@@ -1,8 +1,7 @@
-// src/config/database.ts
-// -> inisialisasi koneksi basis data mongodb menggunakan mongoose
-//      -> penanganan koneksi awal dan pemutusan graceful shutdown
-//      -> pencatatan log status koneksi mongodb
+// Todo:
+// -> Open and close the shared MongoDB connection.
 
+// --- Database connection ---
 import mongoose from "mongoose";
 import { ENV } from "./env.js";
 
@@ -25,3 +24,4 @@ export const disconnectDatabase = async (): Promise<void> => {
     console.error("[MongoDB] Galat saat pemutusan koneksi:", error);
   }
 };
+// --- end of Database connection ---

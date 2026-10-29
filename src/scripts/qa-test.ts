@@ -1,18 +1,8 @@
-// src/scripts/qa-test.ts
-// -> pengujian otomatis quality assurance (qa) menyeluruh untuk layanan backend buktipulih
-//      -> tc-01: health check dan kesiapan basis data
-//      -> tc-02: pembacaan seluruh petak restorasi (geojson featurecollection)
-//      -> tc-03: filter spasial bounding box (bbox kalimantan barat)
-//      -> tc-04: pembacaan detail petak tunggal (pl-kalbar-001)
-//      -> tc-05: agregasi metrik impact ledger (luas, pohon, survival rate)
-//      -> tc-06: sinkronisasi dan cache data eksternal bnpb karhutla 2026
-//      -> tc-07: pembacaan catatan linimasa (urutan kronologis terbalik)
-//      -> tc-08: peningkatan counter verifikasi/upvote linimasa
-//      -> tc-09: penambahan komentar linimasa dan sanitasi serangan xss
-//      -> tc-10: autentikasi kader berhasil (nomor wa dan pin valid)
-//      -> tc-11: autentikasi kader gagal (pin salah / proteksi otorisasi)
-//      -> tc-12: pembuatan laporan pemantauan lapangan dan sinkronisasi batch luring
+// Todo:
+// -> Exercise the older API contract, including retired phone/PIN login.
 
+// --- Legacy API checks ---
+// TC-10/11 target a retired login route. Use the current auth test suites for email/password flows.
 interface TestCaseResult {
   id: string;
   name: string;
@@ -25,7 +15,6 @@ const BASE_URL = process.env.API_BASE_URL || "http://localhost:5000";
 
 const results: TestCaseResult[] = [];
 
-// fungsi pembantu pencatatan hasil pengujian ----------------------------------
 const recordResult = (
   id: string,
   name: string,
@@ -50,7 +39,6 @@ const runAllTests = async () => {
   let authCookie = "";
   let sampleTimelineId = "";
 
-  // TC-01: Health Check --------------------------------------------------------
   {
     const start = Date.now();
     try {
@@ -69,7 +57,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-02: Get All Plots (GeoJSON FeatureCollection) ---------------------------
   {
     const start = Date.now();
     try {
@@ -90,7 +77,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-03: Spatial Bounding Box Filter -----------------------------------------
   {
     const start = Date.now();
     try {
@@ -113,7 +99,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-04: Single Plot Detail Query --------------------------------------------
   {
     const start = Date.now();
     try {
@@ -134,7 +119,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-05: Aggregate Impact Ledger Metrics -------------------------------------
   {
     const start = Date.now();
     try {
@@ -164,7 +148,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-06: External BNPB Karhutla Cache Endpoint -------------------------------
   {
     const start = Date.now();
     try {
@@ -186,7 +169,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-07: Timeline Notes Retrieval (Reverse Chronological) --------------------
   {
     const start = Date.now();
     try {
@@ -210,7 +192,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-08: Timeline Upvote / Verification Counter ------------------------------
   {
     const start = Date.now();
     try {
@@ -238,7 +219,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-09: Add Comment & XSS Sanitization Check --------------------------------
   {
     const start = Date.now();
     try {
@@ -272,7 +252,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-10: Kader Authentication Positive Test (WA + Valid PIN) ----------------
   {
     const start = Date.now();
     try {
@@ -302,7 +281,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-11: Kader Authentication Negative Test (Invalid PIN) --------------------
   {
     const start = Date.now();
     try {
@@ -328,7 +306,6 @@ const runAllTests = async () => {
     }
   }
 
-  // TC-12: Create Field Report & Batch Offline Sync ----------------------------
   {
     const start = Date.now();
     try {
@@ -352,7 +329,6 @@ const runAllTests = async () => {
       const singleJson = await singleReportRes.json() as any;
       const singlePassed = singleReportRes.status === 201 && singleJson.data?.report_id;
 
-      // Uji pengiriman batch luring (offline batch sync)
       const batchRes = await fetch(`${BASE_URL}/api/v1/reports/offline-batch`, {
         method: "POST",
         headers: {
@@ -389,7 +365,6 @@ const runAllTests = async () => {
     }
   }
 
-  // Ringkasan Pengujian --------------------------------------------------------
   console.log("\n==================================================================");
   const passedTotal = results.filter((r) => r.passed).length;
   const failedTotal = results.length - passedTotal;
@@ -411,3 +386,4 @@ runAllTests().catch((err) => {
   console.error("Kesalahan fatal saat eksekusi pengujian:", err);
   process.exit(1);
 });
+// --- end of Legacy API checks ---

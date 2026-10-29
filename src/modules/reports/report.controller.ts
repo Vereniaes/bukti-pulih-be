@@ -1,8 +1,7 @@
-// src/modules/reports/report.controller.ts
-// -> controller penerima http request pelaporan lapangan
-//      -> penanganan post /api/v1/reports
-//      -> penanganan post /api/v1/reports/offline-batch
+// Todo:
+// -> Validate plot reports and offline batches before saving.
 
+// --- Report requests ---
 import { Request, Response, NextFunction } from "express";
 import { createReportService, batchOfflineSyncService } from "./report.service.js";
 import { sendSuccess, sendError } from "../../utils/response.js";
@@ -72,3 +71,4 @@ export const batchOfflineSyncHandler = async (
     next(error);
   }
 };
+// --- end of Report requests ---

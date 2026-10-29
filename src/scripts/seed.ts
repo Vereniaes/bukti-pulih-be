@@ -1,9 +1,8 @@
-// src/scripts/seed.ts
-// -> skrip seeder data awal basis data buktipulih
-//      -> menyuntikkan petak restorasi (kalbar, bekasi, kalteng)
-//      -> menyuntikkan akun kader lapangan default (pak suwardi, pin: 123456)
-//      -> menyuntikkan catatan linimasa dan cache data bnpb karhutla
+// Todo:
+// -> Replace sample plots, users, timeline entries, and BNPB cache.
 
+// --- Legacy sample seed ---
+// This deletes sample collections and creates a phone/PIN fixture that cannot use the current login.
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { connectDatabase, disconnectDatabase } from "../config/database.js";
@@ -16,7 +15,6 @@ const runSeed = async () => {
   console.log("[Seeder] Memulai pengisian data awal BuktiPulih...");
   await connectDatabase();
 
-  // bersihkan data lama -----------------------------------------------------------
   await Promise.all([
     PlotModel.deleteMany({}),
     UserModel.deleteMany({}),
@@ -25,7 +23,6 @@ const runSeed = async () => {
   ]);
   console.log("[Seeder] Koleksi lama dibersihkan.");
 
-  // 1. seed akun pengguna kader ----------------------------------------------------
   const pinHash = await bcrypt.hash("123456", 12);
   const kader = await UserModel.create({
     phone_number: "081234567890",
@@ -39,7 +36,6 @@ const runSeed = async () => {
   });
   console.log("[Seeder] Akun kader lapangan dibuat:", kader.full_name);
 
-  // 2. seed petak restorasi --------------------------------------------------------
   const plotKalbar = await PlotModel.create({
     plot_code: "PL-KALBAR-001",
     name: "Petak Restorasi Gambut Parit Tokaya",
@@ -110,7 +106,6 @@ const runSeed = async () => {
   });
   console.log("[Seeder] 3 petak restorasi berhasil disimpan.");
 
-  // 3. seed catatan linimasa relawan -----------------------------------------------
   await MonitoringLogModel.create([
     {
       plot_id: plotKalbar._id,
@@ -185,7 +180,6 @@ const runSeed = async () => {
   ]);
   console.log("[Seeder] Catatan linimasa polaroid berhasil dibuat.");
 
-  // 4. seed cache bnpb karhutla ----------------------------------------------------
   await BnpbSyncCacheModel.create({
     source: "WebGIS BNPB (gis.bnpb.go.id - 2026_karhutla)",
     layer: "mv_prov_karhutla_2026",
@@ -229,3 +223,4 @@ runSeed().catch((err) => {
   console.error("[Seeder] Galat:", err);
   process.exit(1);
 });
+// --- end of Legacy sample seed ---

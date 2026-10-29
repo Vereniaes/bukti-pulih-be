@@ -1,8 +1,7 @@
-// src/modules/plots/plot.model.ts
-// -> skema dan model koleksi petak restorasi (plots)
-//      -> struktur geospasial point 2dsphere untuk koordinat peta
-//      -> data metrik bibit ditanam dan survival rate
+// Todo:
+// -> Store restoration plots with coordinates and seedling metrics.
 
+// --- Plot storage ---
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IPlot extends Document {
@@ -73,9 +72,8 @@ const PlotSchema = new Schema<IPlot>(
   }
 );
 
-// indeks geospasial untuk kueri radius dan bounding box --------------------------
 PlotSchema.index({ location: "2dsphere" });
 PlotSchema.index({ region: 1, latest_status: 1 });
-// end of indeks -------------------------------------------------------------------
 
 export const PlotModel = mongoose.model<IPlot>("Plot", PlotSchema);
+// --- end of Plot storage ---

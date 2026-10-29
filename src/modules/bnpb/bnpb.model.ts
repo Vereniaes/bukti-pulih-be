@@ -1,8 +1,7 @@
-// src/modules/bnpb/bnpb.model.ts
-// -> skema dan model koleksi cache sinkronisasi karhutla bnpb (bnpb_sync_cache)
-//      -> data atribut provinsi, hotspot, luas terbakar, personel relawan
-//      -> korelasi dengan cakupan restorasi buktipulih di provinsi terkait
+// Todo:
+// -> Store provincial totals and restoration coverage in a cached snapshot.
 
+// --- BNPB snapshot ---
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IBnpbProvince {
@@ -58,3 +57,4 @@ export const BnpbSyncCacheModel = mongoose.model<IBnpbSyncCache>(
   "BnpbSyncCache",
   BnpbSyncCacheSchema
 );
+// --- end of BNPB snapshot ---

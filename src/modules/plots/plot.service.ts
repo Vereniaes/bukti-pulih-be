@@ -1,9 +1,7 @@
-// src/modules/plots/plot.service.ts
-// -> business logic manajemen petak restorasi (plots)
-//      -> kueri daftar petak dalam format standar geojson featurecollection
-//      -> kueri ringkasan detail petak terpilih
-//      -> filter wilayah, status, dan spasial bounding box
+// Todo:
+// -> Filter restoration plots and format their GeoJSON and detail responses.
 
+// --- Plot queries ---
 import mongoose from "mongoose";
 import { PlotModel } from "./plot.model.js";
 
@@ -13,6 +11,9 @@ interface GetPlotsQuery {
   bbox?: string;
 }
 
+// Purpose: Apply plot filters and format matching records as GeoJSON.
+// Input: Region, status, and optional west/south/east/north bounds.
+// Output: Feature collection.
 export const getPlotsGeoJsonService = async (query: GetPlotsQuery) => {
   const filter: Record<string, unknown> = {};
 
@@ -24,7 +25,6 @@ export const getPlotsGeoJsonService = async (query: GetPlotsQuery) => {
     filter.latest_status = query.status;
   }
 
-  // kueri bounding box jika diberikan minLng,minLat,maxLng,maxLat ----------------
   if (query.bbox) {
     const coords = query.bbox.split(",").map(Number);
     if (coords.length === 4 && !coords.some(isNaN)) {
@@ -39,11 +39,9 @@ export const getPlotsGeoJsonService = async (query: GetPlotsQuery) => {
       };
     }
   }
-  // end of kueri bounding box -----------------------------------------------------
 
   const plots = await PlotModel.find(filter).sort({ survival_rate: -1 });
 
-  // konversi dokumen ke standar geojson featurecollection -------------------------
   const features = plots.map((p) => ({
     type: "Feature",
     id: p._id.toString(),
@@ -66,7 +64,6 @@ export const getPlotsGeoJsonService = async (query: GetPlotsQuery) => {
       cover_image_url: p.cover_image_url,
     },
   }));
-  // end of konversi geojson -------------------------------------------------------
 
   return {
     type: "FeatureCollection",
@@ -108,3 +105,4 @@ export const getPlotSummaryService = async (id: string) => {
     },
   };
 };
+// --- end of Plot queries ---

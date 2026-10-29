@@ -1,9 +1,7 @@
-// src/modules/timeline/timeline.controller.ts
-// -> controller penerima http request linimasa relawan
-//      -> penanganan get /api/v1/timeline
-//      -> penanganan post /api/v1/timeline/:id/verify
-//      -> penanganan post /api/v1/timeline/:id/comments
+// Todo:
+// -> Handle public timeline reads, confirmations, and comments.
 
+// --- Timeline requests ---
 import { Request, Response, NextFunction } from "express";
 import {
   getTimelineService,
@@ -82,3 +80,4 @@ export const addCommentHandler = async (
     next(error);
   }
 };
+// --- end of Timeline requests ---

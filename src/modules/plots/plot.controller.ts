@@ -1,8 +1,7 @@
-// src/modules/plots/plot.controller.ts
-// -> controller penerima http request petak restorasi (plots)
-//      -> penanganan get /api/v1/plots (geojson)
-//      -> penanganan get /api/v1/plots/:id/summary
+// Todo:
+// -> Read plot filters and return plot lists or summaries.
 
+// --- Plot requests ---
 import { Request, Response, NextFunction } from "express";
 import { getPlotsGeoJsonService, getPlotSummaryService } from "./plot.service.js";
 import { sendSuccess, sendError } from "../../utils/response.js";
@@ -42,3 +41,4 @@ export const getPlotSummaryHandler = async (
     next(error);
   }
 };
+// --- end of Plot requests ---

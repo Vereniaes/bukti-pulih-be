@@ -1,10 +1,12 @@
-// src/modules/metrics/metrics.service.ts
-// -> business logic metrik agregasi nasional (impact ledger)
-//      -> pipeline agregasi mongodb jumlah bibit ditanam dan bibit hidup
-//      -> perhitungan survival rate nasional dan total luasan lahan pulih
+// Todo:
+// -> Aggregate plot metrics and community totals.
 
+// --- Restoration metrics ---
 import { PlotModel } from "../plots/plot.model.js";
 
+// Purpose: Sum restoration metrics from stored plots.
+// Input: Plot collection.
+// Output: Plot totals, survival rate, and a fixed sample report count.
 export const getImpactLedgerService = async () => {
   const plots = await PlotModel.find();
 
@@ -37,7 +39,9 @@ export const getImpactLedgerService = async () => {
     total_area_hectares: Math.round(totalArea * 100) / 100,
     active_plots_count: plots.length,
     active_communities_count: communitiesSet.size,
+    // Sample value; reports are not counted by this query.
     total_field_reports: 242,
     last_updated_at: new Date().toISOString(),
   };
 };
+// --- end of Restoration metrics ---

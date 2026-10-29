@@ -1,9 +1,7 @@
-// src/modules/timeline/timeline.service.ts
-// -> business logic linimasa relawan (notes collage)
-//      -> kueri linimasa kronologis terbalik dengan paginasi ramah lansia
-//      -> upvote konfirmasi kondisi tanaman oleh publik anti-tamper
-//      -> penambahan komentar warga dengan sanitasi anti-stored xss
+// Todo:
+// -> Read paged plot notes and save visitor confirmations and comments.
 
+// --- Timeline entries ---
 import { MonitoringLogModel, LogCommentModel } from "./timeline.model.js";
 import { sanitizeTextInput } from "../../utils/sanitize.js";
 
@@ -73,7 +71,6 @@ export const verifyTimelineItemService = async (
   const alreadyVerified = visitors.includes(visitorIdentifier);
 
   if (alreadyVerified) {
-    // batalkan upvote jika diklik kembali (toggle)
     log.community_verifications.verified_visitors = visitors.filter((v) => v !== visitorIdentifier);
     if (type === "subur") {
       log.community_verifications.confirmed_subur_count = Math.max(
@@ -82,7 +79,6 @@ export const verifyTimelineItemService = async (
       );
     }
   } else {
-    // tambahkan upvote dan catat identifier visitor
     log.community_verifications.verified_visitors.push(visitorIdentifier);
     if (type === "subur") {
       log.community_verifications.confirmed_subur_count += 1;
@@ -124,3 +120,4 @@ export const addCommentService = async (
 
   return comment;
 };
+// --- end of Timeline entries ---

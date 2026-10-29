@@ -1,9 +1,7 @@
-// src/middlewares/errorHandler.ts
-// -> penangan galat global express (global error handler)
-//      -> menangkap error zod validation
-//      -> menangkap error mongoose / nosql
-//      -> mengembalikan respons json berstandar envelope
+// Todo:
+// -> Convert validation and server errors into API responses.
 
+// --- Request errors ---
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { sendError } from "../utils/response.js";
@@ -33,3 +31,4 @@ export const errorHandler = (
     "Terjadi kendala pada server. Silakan coba kembali nanti."
   );
 };
+// --- end of Request errors ---

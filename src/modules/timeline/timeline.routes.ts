@@ -1,9 +1,7 @@
-// src/modules/timeline/timeline.routes.ts
-// -> perutean endpoint linimasa relawan (notes collage)
-//      -> get /api/v1/timeline
-//      -> post /api/v1/timeline/:id/verify
-//      -> post /api/v1/timeline/:id/comments
+// Todo:
+// -> Expose public timeline reads, confirmations, and comments.
 
+// --- Timeline routes ---
 import { Router } from "express";
 import {
   getTimelineHandler,
@@ -18,3 +16,4 @@ router.post("/:id/verify", verifyTimelineItemHandler);
 router.post("/:id/comments", addCommentHandler);
 
 export const timelineRoutes = router;
+// --- end of Timeline routes ---

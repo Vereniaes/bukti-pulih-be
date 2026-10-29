@@ -1,4 +1,7 @@
-// Authenticate accounts and return only the public profile shape.
+// Todo:
+// -> Read account profiles and enforce setting limits.
+
+// --- Account profile ---
 import { USERNAME_INDEX, USERNAME_SAVE_LIMIT, usernameSaveCount } from "./username-policy.js";
 import { UserModel, type IUser } from "./user.model.js";
 
@@ -55,3 +58,4 @@ export const updateMeService = async (userId: string, changes: Record<string, un
   }
   return user ? safeUser(user) : null;
 };
+// --- end of Account profile ---

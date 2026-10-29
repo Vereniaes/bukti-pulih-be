@@ -1,4 +1,7 @@
-// Handle sign-in and safe profile reads and updates.
+// Todo:
+// -> Read, update, or delete the active account and close its session.
+
+// --- Account requests ---
 import type { Request, Response, NextFunction } from "express";
 import { isPublicUploadUrl } from "../../utils/media.js";
 import { z } from "zod";
@@ -80,3 +83,4 @@ export const deleteMeHandler = async (req: Request, res: Response, next: NextFun
     next(error);
   }
 };
+// --- end of Account requests ---

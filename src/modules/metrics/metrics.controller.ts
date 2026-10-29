@@ -1,7 +1,7 @@
-// src/modules/metrics/metrics.controller.ts
-// -> controller penerima request metrik impact ledger
-//      -> penanganan get /api/v1/metrics/impact-ledger
+// Todo:
+// -> Return aggregated restoration metrics.
 
+// --- Metrics response ---
 import { Request, Response, NextFunction } from "express";
 import { getImpactLedgerService } from "./metrics.service.js";
 import { sendSuccess } from "../../utils/response.js";
@@ -18,3 +18,4 @@ export const getImpactLedgerHandler = async (
     next(error);
   }
 };
+// --- end of Metrics response ---

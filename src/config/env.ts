@@ -1,10 +1,7 @@
-// src/config/env.ts
-// -> validasi dan pemuatan variabel konfigurasi lingkungan backend
-//      -> konfigurasi port server dan mode aplikasi
-//      -> uri koneksi basis data mongodb
-//      -> kunci jwt dan rahasia cookie sesi
-//      -> endpoint arcgis bnpb karhutla
+// Todo:
+// -> Read backend settings and require production secrets at startup.
 
+// --- Environment ---
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -33,3 +30,4 @@ export const ENV = {
     process.env.BNPB_ARCGIS_ENDPOINT ||
     "https://gis.bnpb.go.id/server/rest/services/2026_karhutla/mv_prov_karhutla_2026/MapServer/3/query",
 };
+// --- end of Environment ---

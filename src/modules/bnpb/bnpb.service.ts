@@ -1,9 +1,7 @@
-// src/modules/bnpb/bnpb.service.ts
-// -> business logic integrasi penarikan data karhutla bnpb arcgis rest
-//      -> memanggil endpoint aktif webgis bnpb (2026_karhutla/mv_prov_karhutla_2026)
-//      -> menyelaraskan dengan luasan restorasi petak buktipulih
-//      -> menyimpan hasil ke cache lokal mongodb (bnpb_sync_cache)
+// Todo:
+// -> Fetch provincial BNPB totals and store them with plot coverage in MongoDB.
 
+// --- BNPB cache ---
 import { ENV } from "../../config/env.js";
 import { BnpbSyncCacheModel, IBnpbProvince } from "./bnpb.model.js";
 import { PlotModel } from "../plots/plot.model.js";
@@ -19,6 +17,9 @@ interface ArcGISFeature {
   };
 }
 
+// Purpose: Combine provincial BNPB totals with stored plot coverage.
+// Input: Configured BNPB endpoint and current plot records.
+// Output: Updated snapshot; fetch failures use an existing snapshot or throw.
 export const syncBnpbKarhutlaData = async () => {
   try {
     const url = `${ENV.BNPB_ARCGIS_ENDPOINT}?where=1=1&outFields=provinsi,tgl_update,today_luas_terbakar,total_hotspot,relawan,kualitas_udara_pm25&returnGeometry=false&f=json`;
@@ -58,7 +59,6 @@ export const syncBnpbKarhutlaData = async () => {
       };
     });
 
-    // simpan atau perbarui cache di mongodb ---------------------------------------
     let cacheDoc = await BnpbSyncCacheModel.findOne();
     if (!cacheDoc) {
       cacheDoc = new BnpbSyncCacheModel({
@@ -85,7 +85,6 @@ export const syncBnpbKarhutlaData = async () => {
 export const getBnpbKarhutlaService = async () => {
   let cache = await BnpbSyncCacheModel.findOne();
   if (!cache) {
-    // jika cache kosong, lakukan sinkronisasi pertama kali
     cache = await syncBnpbKarhutlaData();
   }
 
@@ -105,3 +104,4 @@ export const getBnpbKarhutlaService = async () => {
     provinces,
   };
 };
+// --- end of BNPB cache ---

@@ -1,8 +1,7 @@
-// src/utils/response.ts
-// -> pembungkus standar respons api json (envelope pattern)
-//      -> format respons sukses status 200/201
-//      -> format respons gagal status 400/401/403/404/422/500
+// Todo:
+// -> Build success and error response envelopes.
 
+// --- API responses ---
 import { Response } from "express";
 
 export const sendSuccess = <T>(
@@ -41,3 +40,4 @@ export const sendError = (
     },
   });
 };
+// --- end of API responses ---

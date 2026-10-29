@@ -1,9 +1,7 @@
-// src/modules/reports/report.service.ts
-// -> business logic formulir pelaporan lapangan kader
-//      -> penerimaan laporan foto bibit & validasi bounding box anti-spoof
-//      -> sinkronisasi batch offline queue saat perangkat kembali terhubung internet
-//      -> pembaruan otomatis ke koleksi monitoring_logs dan metrik petak
+// Todo:
+// -> Save plot reports and update the plot and timeline when published.
 
+// --- Plot reports ---
 import { ReportInboxModel } from "./report.model.js";
 import { PlotModel } from "../plots/plot.model.js";
 import { MonitoringLogModel } from "../timeline/timeline.model.js";
@@ -24,8 +22,10 @@ interface CreateReportInput {
   photo_url?: string;
 }
 
+// Purpose: Save a plot report and publish a timeline entry when its bounds pass.
+// Input: Report fields with the reporter assigned by the controller.
+// Output: Saved report and review status; an unknown plot throws an error.
 export const createReportService = async (input: CreateReportInput) => {
-  // cari petak terkait ------------------------------------------------------------
   let plot = null;
   if (mongoose.Types.ObjectId.isValid(input.plot_id)) {
     plot = await PlotModel.findById(input.plot_id);
@@ -38,7 +38,7 @@ export const createReportService = async (input: CreateReportInput) => {
     throw new Error("Petak restorasi tidak ditemukan.");
   }
 
-  // validasi anti-geotag spoofing (koordinat indonesia) --------------------------
+  // This checks broad Indonesia bounds, not whether the device was at the plot.
   let verificationStatus: "published" | "pending_review" | "flagged_fraud" = "published";
   if (
     input.latitude < -11 ||
@@ -52,7 +52,6 @@ export const createReportService = async (input: CreateReportInput) => {
   const cleanNotes = sanitizeTextInput(input.notes || "");
   const reporterName = input.reporter_name || "Kader Lapangan Terdaftar";
 
-  // buat dokumen laporan inbox ----------------------------------------------------
   const report = new ReportInboxModel({
     reporter_id: input.reporter_id ? new mongoose.Types.ObjectId(input.reporter_id) : undefined,
     reporter_name: reporterName,
@@ -75,13 +74,11 @@ export const createReportService = async (input: CreateReportInput) => {
 
   await report.save();
 
-  // perbarui petak jika status valid ----------------------------------------------
   if (verificationStatus === "published") {
     plot.last_monitored_at = new Date();
     plot.latest_status = input.tree_condition === "mati" ? "kritis" : input.tree_condition;
     await plot.save();
 
-    // otomatis buat entri linimasa baru -------------------------------------------
     const log = new MonitoringLogModel({
       plot_id: plot._id,
       plot_code: plot.plot_code,
@@ -141,3 +138,4 @@ export const batchOfflineSyncService = async (batch: CreateReportInput[]) => {
     results,
   };
 };
+// --- end of Plot reports ---

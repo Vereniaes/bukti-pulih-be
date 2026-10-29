@@ -1,8 +1,7 @@
-// src/modules/reports/report.routes.ts
-// -> perutean endpoint pelaporan lapangan kader
-//      -> post /api/v1/reports
-//      -> post /api/v1/reports/offline-batch
+// Todo:
+// -> Require an active session for plot reports and offline batches.
 
+// --- Report routes ---
 import { Router } from "express";
 import { createReportHandler, batchOfflineSyncHandler } from "./report.controller.js";
 import { requireAuth, requireActiveUser } from "../../middlewares/auth.js";
@@ -15,3 +14,4 @@ router.post("/", browserMutation, requireAuth, requireActiveUser, createReportHa
 router.post("/offline-batch", browserMutation, requireAuth, requireActiveUser, batchOfflineSyncHandler);
 
 export const reportRoutes = router;
+// --- end of Report routes ---

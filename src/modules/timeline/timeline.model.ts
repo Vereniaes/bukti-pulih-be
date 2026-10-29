@@ -1,8 +1,7 @@
-// src/modules/timeline/timeline.model.ts
-// -> skema dan model koleksi linimasa relawan (monitoring_logs & log_comments)
-//      -> data memo lapangan, komparasi foto bibit, metrik tumbuh kembang
-//      -> sistem verifikasi suara warga anti-fraud dan komentar komunitas
+// Todo:
+// -> Store plot-monitoring notes, visitor identifiers, and comments.
 
+// --- Timeline storage ---
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IMonitoringLog extends Document {
@@ -89,7 +88,6 @@ export const MonitoringLogModel = mongoose.model<IMonitoringLog>(
   MonitoringLogSchema
 );
 
-// skema komentar warga -----------------------------------------------------------
 export interface ILogComment extends Document {
   log_id: mongoose.Types.ObjectId;
   author_name: string;
@@ -115,3 +113,4 @@ const LogCommentSchema = new Schema<ILogComment>(
 );
 
 export const LogCommentModel = mongoose.model<ILogComment>("LogComment", LogCommentSchema);
+// --- end of Timeline storage ---
