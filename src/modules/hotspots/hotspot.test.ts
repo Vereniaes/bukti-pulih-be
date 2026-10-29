@@ -1,7 +1,7 @@
 // FIRMS contract tests use fixtures only. No production data or secrets.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createHotspotService, HotspotError, parseBounds, parseHotspots, Bounds } from "./hotspot.service.js";
+import { createHotspotService, HotspotError, parseHours, parseBounds, parseHotspots, Bounds } from "./hotspot.service.js";
 
 const now = Date.parse("2026-10-18T00:30:00Z");
 const header = "latitude,longitude,acq_date,acq_time,confidence,frp\n";
@@ -85,4 +85,23 @@ test("missing key does not call NASA and does not return synthetic observations"
   const request: typeof fetch = async () => { calls++; return new Response(header); };
   await assert.rejects(createHotspotService(() => "", request)(bounds), (e: unknown) => e instanceof HotspotError && e.code === "FIRMS_NOT_CONFIGURED");
   assert.equal(calls, 0);
+});
+
+test("optional time windows validate and preserve the 24-hour default",()=>{
+  assert.equal(parseHours(undefined),24);
+  for(const hours of [6,12,24,72])assert.equal(parseHours(String(hours)),hours);
+  for(const hours of ["0","7","73",null,[],"72x"])assert.throws(()=>parseHours(hours));
+});
+test("72-hour requests include four UTC dates and cache their own full rolling window",async()=>{
+  const urls:string[]=[];
+  const csv=header+row+"-0.85,109.85,2026-10-15,0030,h,8\n"+"-0.85,109.85,2026-10-15,0029,n,2\n";
+  let clock=now;
+  const service=createHotspotService(key,async(input)=>{urls.push(String(input));return new Response(csv);},()=>clock);
+  assert.equal((await service(bounds,72)).observations.length,4);
+  assert.ok(urls.every(url=>url.includes("/109,-2,111,1/4/2026-10-15")));
+  clock+=60000;
+  assert.equal((await service(bounds,72)).observations.length,2);
+  assert.equal(urls.length,2);
+  await service(bounds);assert.equal(urls.length,4);
+  assert.ok(urls[2].includes("/109,-2,111,1/2/2026-10-17"));
 });

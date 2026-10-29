@@ -26,6 +26,9 @@ export const createReportHandler = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    if (!["GOVERNMENT_VERIFIER", "ADMIN_SUPER"].includes(req.user!.role)) {
+      sendError(res, 403, "FORBIDDEN", "Gunakan Kirim bukti untuk laporan warga."); return;
+    }
     const validated = createReportSchema.parse(req.body);
     const report = await createReportService({
       ...validated,
@@ -59,8 +62,11 @@ export const batchOfflineSyncHandler = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    if (!["GOVERNMENT_VERIFIER", "ADMIN_SUPER"].includes(req.user!.role)) {
+      sendError(res, 403, "FORBIDDEN", "Gunakan Kirim bukti untuk laporan warga."); return;
+    }
     const validated = batchSchema.parse(req.body);
-    const result = await batchOfflineSyncService(validated.batch);
+    const result = await batchOfflineSyncService(validated.batch.map(item => ({ ...item, reporter_id: req.user!.userId, reporter_name: req.user!.fullName })));
     sendSuccess(res, result);
   } catch (error) {
     next(error);

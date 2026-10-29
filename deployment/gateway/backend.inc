@@ -1,0 +1,12 @@
+proxy_pass https://bukti-pulih-be-tbg4dx4uha-et.a.run.app;
+proxy_http_version 1.1;
+proxy_ssl_server_name on;
+proxy_ssl_verify on;
+proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
+proxy_set_header Host bukti-pulih-be-tbg4dx4uha-et.a.run.app;
+proxy_set_header Connection "";
+proxy_set_header X-Forwarded-Proto https;
+proxy_connect_timeout 15s;
+proxy_read_timeout 60s;
+proxy_send_timeout 60s;
+proxy_buffering off;

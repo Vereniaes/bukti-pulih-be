@@ -1,7 +1,7 @@
 {
   "name": "bukti-pulih-be",
   "version": "1.0.0",
-  "description": "Backend API Service BuktiPulih — Platform Transparansi & Pemantauan Restorasi Pasca-Karhutla",
+  "description": "Backend API Service BuktiPulih \u2014 Platform Transparansi & Pemantauan Restorasi Pasca-Karhutla",
   "main": "src/server.ts",
   "engines": {
     "node": ">=22.12.0"
@@ -13,7 +13,14 @@
     "seed": "tsx src/scripts/seed.ts",
     "test:qa": "tsx src/scripts/qa-test.ts",
     "test:hotspots": "tsx --test src/modules/hotspots/hotspot.test.ts",
-    "test:security": "tsx --test tests/security-upgrade.test.ts"
+    "test:security": "tsx --test tests/security-upgrade.test.ts",
+    "sync:satellite": "tsx src/scripts/sync-satellite.ts",
+    "test:satellite": "tsx --test tests/satellite-store.test.ts tests/satellite-service.test.ts",
+    "sync:hazards": "tsx src/scripts/sync-hazards.ts",
+    "test:hazards": "tsx --test src/modules/hazards/hazard.sources.test.ts tests/hazards.test.ts",
+    "test:email-auth": "tsx --test tests/email-auth.test.ts tests/password-auth.test.ts tests/profile-forum.test.ts tests/account-deletion.test.ts",
+    "migrate:email-auth": "tsx src/scripts/migrate-email-auth.ts",
+    "test:evidence": "tsx --test tests/geolocated-evidence.test.ts"
   },
   "keywords": [
     "buktipulih",
@@ -26,11 +33,13 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "csv-parse": "^7.0.3",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
+    "google-auth-library": "11.3.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.9.5",
     "node-cron": "^4.6.0",
@@ -39,6 +48,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.8",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",

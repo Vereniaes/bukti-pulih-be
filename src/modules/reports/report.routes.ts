@@ -5,11 +5,13 @@
 
 import { Router } from "express";
 import { createReportHandler, batchOfflineSyncHandler } from "./report.controller.js";
-import { optionalAuth } from "../../middlewares/auth.js";
+import { requireAuth, requireActiveUser } from "../../middlewares/auth.js";
+
+import { browserMutation } from "../auth/auth.http.js";
 
 const router = Router();
 
-router.post("/", optionalAuth, createReportHandler);
-router.post("/offline-batch", optionalAuth, batchOfflineSyncHandler);
+router.post("/", browserMutation, requireAuth, requireActiveUser, createReportHandler);
+router.post("/offline-batch", browserMutation, requireAuth, requireActiveUser, batchOfflineSyncHandler);
 
 export const reportRoutes = router;

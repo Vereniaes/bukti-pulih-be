@@ -1,7 +1,19 @@
 node_modules
 dist
-.env
+
+# environment variables
+.env*
+!.env.example
+
+# logs and debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
+
+# test coverage
+coverage
+
+# system files
 .DS_Store
+
