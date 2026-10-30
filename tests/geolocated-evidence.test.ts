@@ -1,4 +1,7 @@
-// Check authenticated, private and map-ready geolocated community evidence.
+// Todo:
+// -> check authenticated evidence, media bounds and public map reads
+
+// --- Evidence checks ---
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { once } from "node:events";
@@ -79,6 +82,69 @@ const evidence = (overrides: Record<string, unknown> = {}) => ({
   location: { type: "Point", coordinates: [109.3, -0.02] },
   ecosystem_type: "gambut", condition: "perlu_rawat", submission_id: submissionId(),
   ...overrides,
+});
+
+test("evidence keeps five ordered photos and videos through detail and retry", async () => {
+  const media = Array.from({ length: 5 }, (_, index) => ({
+    type: index % 2 ? "video" : "image", url: `https://files.public.blob.vercel-storage.com/bukti-lapangan/item-${index}.${index % 2 ? "mov" : "jpg"}`, aspect_ratio: "landscape",
+  }));
+  const input = evidence({ media: media[0], media_items: media });
+  const create = () => request("/api/v1/forum/posts", { method: "POST", body: json(input) }, cookieOne);
+  const first = await create(); assert.equal(first.status, 201);
+  const post = (await first.json()).data;
+  assert.deepEqual(post.media_items, media);
+  assert.deepEqual(post.media, media[0]);
+  const retry = await create(); assert.equal((await retry.json()).data.id, post.id);
+  assert.deepEqual((await (await request(`/api/v1/forum/posts/${post.id}`)).json()).data.media_items, media);
+  const changed = structuredClone(input);
+  changed.media_items[4].url = "https://files.public.blob.vercel-storage.com/bukti-lapangan/changed.jpg";
+  assert.equal((await request("/api/v1/forum/posts", { method: "POST", body: json(changed) }, cookieOne)).status, 409);
+});
+
+test("evidence rejects invalid media counts, duplicate files and a mismatched cover", async () => {
+  const first = evidence().media;
+  const other = { ...first, url: first.url.replace("photo", "other") };
+  for (const items of [[], Array.from({ length: 6 }, (_, i) => ({ ...first, url: first.url.replace("photo", String(i)) })), [first, first], [other]]) {
+    assert.equal((await request("/api/v1/forum/posts", { method: "POST", body: json(evidence({ media_items: items })) }, cookieOne)).status, 422);
+  }
+  const outside = { ...other, url: "https://tracker.example.test/photo.jpg" };
+  assert.equal((await request("/api/v1/forum/posts", { method: "POST", body: json(evidence({ media_items: [first, outside] })) }, cookieOne)).status, 422);
+});
+
+test("single-media requests remain compatible without a media array", async () => {
+  const input = evidence();
+  const created = await request("/api/v1/forum/posts", { method: "POST", body: json(input) }, cookieOne);
+  assert.equal(created.status, 201);
+  const post = (await created.json()).data;
+  assert.deepEqual(post.media, input.media);
+  assert.deepEqual(post.media_items, [input.media]);
+});
+
+test("categories are shared across accounts and concurrent duplicate names use one key", async () => {
+  const create = (cookie:string,label:string) => request("/api/v1/forum/categories",{method:"POST",body:json({kind:"ecosystem",label})},cookie);
+  const results = await Promise.all([create(cookieOne,"Kebun Bersama"),create(cookieTwo,"  kebun   bersama  ")]);
+  for (const response of results) assert.equal(response.status,201);
+  const [first,second] = await Promise.all(results.map(response=>response.json()));
+  assert.equal(first.data.key,second.data.key);
+  const catalog = (await (await request("/api/v1/forum/categories")).json()).data;
+  assert.equal(catalog.ecosystem.filter((item:{key:string})=>item.key===first.data.key).length,1);
+  assert.ok(catalog.ecosystem.some((item:{key:string})=>item.key==="rumah"));
+  for (const key of ["habis_terbakar","dalam_pemulihan"]) assert.ok(catalog.condition.some((item:{key:string})=>item.key===key));
+  const input = evidence({ecosystem_type:first.data.key,condition:"Habis Terbakar"});
+  const saved = await request("/api/v1/forum/posts",{method:"POST",body:json(input)},cookieTwo);
+  assert.equal(saved.status,201);const post=(await saved.json()).data;
+  assert.equal(post.ecosystem_type,first.data.key);assert.equal(post.condition,"habis_terbakar");
+  const found = await request(`/api/v1/forum/recovery?bbox=109,-1,110,1&ecosystem=${encodeURIComponent(first.data.key)}&condition=habis_terbakar`);
+  assert.equal(found.status,200);assert.ok((await found.json()).data.items.some((item:{id:string})=>item.id===post.id));
+});
+
+test("category writes need a session and reject invalid names without allowing HTML", async () => {
+  const create = (label:string,cookie?:string) => request("/api/v1/forum/categories",{method:"POST",body:json({kind:"condition",label})},cookie);
+  assert.equal((await create("Kering")).status,401);
+  for (const label of [" ","x".repeat(61),"<b></b>","bad\u0000name"]) assert.equal((await create(label,cookieOne)).status,422);
+  const clean=await create("<b>Tanah Kering</b>",cookieOne);assert.equal(clean.status,201);assert.equal((await clean.json()).data.label,"Tanah Kering");
+  const preset=await request("/api/v1/forum/categories",{method:"POST",body:json({kind:"ecosystem",label:"RUMAH"})},cookieTwo);
+  assert.equal((await preset.json()).data.key,"rumah");
 });
 
 test("new evidence requires an active complete-profile session and valid browser context", async () => {
@@ -332,3 +398,4 @@ test("new administrative fields reject invalid lengths and are stored as plain t
   assert.equal(response.status, 201); const post = (await response.json()).data;
   assert.equal(post.province, "Kalimantan Barat"); assert.equal(post.city, "Pontianak"); assert.equal(post.place_detail, "Samping warung");
 });
+// --- end of Evidence checks ---

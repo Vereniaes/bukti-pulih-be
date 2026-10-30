@@ -21,6 +21,8 @@ import { forumRoutes } from "./modules/forum/forum.routes.js";
 import { satelliteRoutes } from "./modules/satellite/satellite.routes.js";
 import { ispuRoutes } from "./modules/ispu/ispu.routes.js";
 import { windRoutes } from "./modules/wind/wind.routes.js";
+import { rainRoutes } from "./modules/rain/rain.routes.js";
+import { weatherRoutes } from "./modules/weather/weather.routes.js";
 import { hotspotRoutes } from "./modules/hotspots/hotspot.routes.js";
 import { hazardRoutes } from "./modules/hazards/hazard.routes.js";
 
@@ -59,6 +61,8 @@ app.use("/api/v1/metrics", metricsRoutes);
 app.use("/api/v1/external", bnpbRoutes);
 app.use("/api/v1/external", hotspotRoutes);
 app.use("/api/v1/external", windRoutes);
+app.use("/api/v1/external", rainRoutes);
+app.use("/api/v1/external", weatherRoutes);
 app.use("/api/v1/external", ispuRoutes);
 app.use("/api/v1", hazardRoutes);
 app.use("/api/v1", satelliteRoutes);

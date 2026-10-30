@@ -1,7 +1,7 @@
 {
   "name": "bukti-pulih-be",
   "version": "1.0.0",
-  "description": "Backend API Service BuktiPulih \u2014 Platform Transparansi & Pemantauan Restorasi Pasca-Karhutla",
+  "description": "Backend API Service BuktiPulih — Platform Transparansi & Pemantauan Restorasi Pasca-Karhutla",
   "main": "src/server.ts",
   "engines": {
     "node": ">=22.12.0"
@@ -15,7 +15,7 @@
     "test:hotspots": "tsx --test src/modules/hotspots/hotspot.test.ts",
     "test:security": "tsx --test tests/security-upgrade.test.ts",
     "sync:satellite": "tsx src/scripts/sync-satellite.ts",
-    "test:satellite": "tsx --test tests/satellite-store.test.ts tests/satellite-service.test.ts",
+    "test:satellite": "tsx --test tests/satellite-store.test.ts tests/satellite-service.test.ts tests/satellite-scheduler.test.ts",
     "sync:hazards": "tsx src/scripts/sync-hazards.ts",
     "test:hazards": "tsx --test src/modules/hazards/hazard.sources.test.ts tests/hazards.test.ts",
     "test:email-auth": "tsx --test tests/email-auth.test.ts tests/password-auth.test.ts tests/profile-forum.test.ts tests/account-deletion.test.ts",
@@ -32,6 +32,7 @@
   "author": "BuktiPulih Team",
   "license": "ISC",
   "dependencies": {
+    "@openmeteo/file-reader": "0.0.21",
     "bcryptjs": "^2.4.3",
     "compression": "^1.8.2",
     "cookie-parser": "^1.4.7",

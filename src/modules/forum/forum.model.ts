@@ -1,4 +1,8 @@
-// Store persisted Forum posts and comments with server-owned author references.
+// Todo:
+// -> store posts, ordered evidence media and threaded comments
+// -> keep server-owned account references
+
+// --- Forum models ---
 import mongoose, { Schema, Types } from "mongoose";
 
 export type ForumRegion = "kalbar" | "kalteng" | "bekasi" | "riau" | "sumsel" | "kalsel" | "jambi" | "lainnya";
@@ -12,12 +16,13 @@ export interface ForumPostRecord extends mongoose.Document {
   place_detail?: string;
   caption: string;
   media: ForumMedia;
+  media_items?: ForumMedia[];
   is_anonymous: boolean;
   submission_id?: string;
   submission_fingerprint?: string;
   location?: { type: "Point"; coordinates: [number, number] };
-  ecosystem_type?: "gambut" | "hutan_kota" | "mineral";
-  condition?: "subur" | "perlu_rawat" | "kritis" | "mati";
+  ecosystem_type?: string;
+  condition?: string;
   verification_status?: "unverified";
   created_at: Date;
 }
@@ -36,6 +41,12 @@ export interface ForumCommentVoteRecord extends mongoose.Document {
   vote: "up" | "down";
 }
 
+const MediaSchema = new Schema<ForumMedia>({
+  type: { type: String, enum: ["image", "video"], required: true },
+  url: { type: String, required: true, maxlength: 2048 },
+  aspect_ratio: { type: String, enum: ["square", "portrait", "landscape"], required: true },
+}, { _id: false });
+
 const ForumPostSchema = new Schema<ForumPostRecord>({
   author_id: { type: Schema.Types.ObjectId, ref: "User", required: true },
   location_name: { type: String, required: true, maxlength: 200 },
@@ -51,14 +62,11 @@ const ForumPostSchema = new Schema<ForumPostRecord>({
     type: { type: String, enum: ["Point"], required: true },
     coordinates: { type: [Number], required: true, validate: (value: number[]) => value.length === 2 && value.every(Number.isFinite) && Math.abs(value[0]) <= 180 && Math.abs(value[1]) <= 90 },
   }, { _id: false }) },
-  ecosystem_type: { type: String, enum: ["gambut", "hutan_kota", "mineral"] },
-  condition: { type: String, enum: ["subur", "perlu_rawat", "kritis", "mati"] },
+  ecosystem_type: { type: String, maxlength:60 },
+  condition: { type: String, maxlength:60 },
   verification_status: { type: String, enum: ["unverified"] },
-  media: {
-    type: { type: String, enum: ["image", "video"], required: true },
-    url: { type: String, required: true, maxlength: 2048 },
-    aspect_ratio: { type: String, enum: ["square", "portrait", "landscape"], required: true },
-  },
+  media: { type: MediaSchema, required: true },
+  media_items: { type: [MediaSchema], default: undefined, validate: (items: ForumMedia[] | undefined) => !items || items.length >= 1 && items.length <= 5 },
 }, { timestamps: { createdAt: "created_at", updatedAt: false } });
 ForumPostSchema.index({ author_id: 1, created_at: -1, _id: -1 });
 ForumPostSchema.index({ author_id: 1, submission_id: 1 }, { unique: true, partialFilterExpression: { submission_id: { $type: "string" } } });
@@ -86,3 +94,4 @@ ForumCommentVoteSchema.index({ comment_id: 1, user_id: 1 }, { unique: true });
 export const ForumPostModel = mongoose.models.ForumPost ?? mongoose.model<ForumPostRecord>("ForumPost", ForumPostSchema);
 export const ForumCommentModel = mongoose.models.ForumComment ?? mongoose.model<ForumCommentRecord>("ForumComment", ForumCommentSchema);
 export const ForumCommentVoteModel = mongoose.models.ForumCommentVote ?? mongoose.model<ForumCommentVoteRecord>("ForumCommentVote", ForumCommentVoteSchema);
+// --- end of Forum models ---

@@ -1,10 +1,15 @@
-// Validate public Forum reads and authenticated post and comment writes.
+// Todo:
+// -> validate public forum reads and authenticated writes
+// -> check evidence locations and ordered media
+
+// --- Forum handlers ---
 import type { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { sendError, sendSuccess } from "../../utils/response.js";
 import { isPublicUploadUrl } from "../../utils/media.js";
 import { sanitizeTextInput } from "../../utils/sanitize.js";
 import { createComment, createPost, getActivity, getPost, listComments, listPosts, listRecoveryReports, voteComment } from "./forum.service.js";
+import { hasCategory, listCategories, saveCategory } from "./forum.categories.js";
 
 const pathId = (value: unknown) => z.string().min(1).max(120).transform(id => /^[a-f0-9]{24}$/i.test(id) ? id.toLowerCase() : id).parse(value);
 const pageQuery = z.object({
@@ -30,12 +35,20 @@ const postSchema = z.object({
   place_detail: z.string().trim().max(240).optional(),
   caption: z.string().trim().min(1).max(5000),
   media: mediaSchema,
+  media_items: z.array(mediaSchema).min(1).max(5).optional(),
   is_anonymous: z.boolean().default(false),
   submission_id: z.string().uuid(),
   location: z.object({ type: z.literal("Point"), coordinates: z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]) }).strict(),
-  ecosystem_type: z.enum(["gambut", "hutan_kota", "mineral"]),
-  condition: z.enum(["subur", "perlu_rawat", "kritis", "mati"]),
-}).strict();
+  ecosystem_type: z.string().trim().min(1).max(60),
+  condition: z.string().trim().min(1).max(60),
+}).strict().superRefine((post, context) => {
+  if (!post.media_items?.length) return;
+  const first = post.media_items[0];
+  if (first.url !== post.media.url || first.type !== post.media.type || first.aspect_ratio !== post.media.aspect_ratio)
+    context.addIssue({ code: "custom", path: ["media_items"], message: "Media utama harus menjadi berkas pertama." });
+  if (new Set(post.media_items.map(item => item.url)).size !== post.media_items.length)
+    context.addIssue({ code: "custom", path: ["media_items"], message: "Berkas tidak boleh berulang." });
+});
 const commentSchema = z.object({
   content: z.string().trim().min(3).max(3000),
   post_title: z.string().trim().max(200).optional(),
@@ -60,6 +73,7 @@ function safeText(value: string, field: string, res: Response): string | null {
 }
 function handleServiceError(error: unknown, res: Response, next: NextFunction) {
   const code = (error as Error)?.message;
+  if(code==="INVALID_CATEGORY") {validationError(res,"category","Kategori tidak valid.");return;}
   if (code === "SUBMISSION_CONFLICT") {
     sendError(res, 409, "SUBMISSION_CONFLICT", "Laporan ini sudah tersimpan dengan data berbeda. Periksa riwayat akun sebelum mengirim ulang."); return;
   }
@@ -84,11 +98,15 @@ const recoveryQuery = z.object({
     z.number().min(-180).max(180), z.number().min(-90).max(90),
   ])).refine(([west, south, east, north]) => west < east && south < north),
   region: z.enum(["all", ...regionKeys]).default("all"),
-  condition: z.enum(["all", "subur", "perlu_rawat", "kritis", "mati"]).default("all"),
-  ecosystem: z.enum(["all", "gambut", "hutan_kota", "mineral"]).default("all"),
+  condition: z.string().trim().min(1).max(60).default("all"),
+  ecosystem: z.string().trim().min(1).max(60).default("all"),
 });
 export const recoveryReportsHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try { sendSuccess(res, await listRecoveryReports(recoveryQuery.parse(req.query))); }
+  try {
+    const input=recoveryQuery.parse(req.query);
+    if(input.condition!=="all" && !await hasCategory("condition",input.condition) || input.ecosystem!=="all" && !await hasCategory("ecosystem",input.ecosystem)) {validationError(res,"category","Kategori tidak ditemukan.");return;}
+    sendSuccess(res, await listRecoveryReports(input));
+  }
   catch (error) { next(error); }
 };
 
@@ -97,6 +115,16 @@ export const listPostsHandler = async (req: Request, res: Response, next: NextFu
     const { page, limit } = pageQuery.parse(req.query);
     sendSuccess(res, await listPosts(page, limit));
   } catch (error) { next(error); }
+};
+
+export const categoriesHandler = async (_req:Request,res:Response,next:NextFunction) => {
+  try {sendSuccess(res,await listCategories());}catch(error){next(error);}
+};
+export const createCategoryHandler = async (req:Request,res:Response,next:NextFunction) => {
+  try {
+    const input=z.object({kind:z.enum(["ecosystem","condition"]),label:z.string().trim().min(1).max(60)}).strict().parse(req.body);
+    sendSuccess(res,await saveCategory(input.kind,input.label),201);
+  } catch(error){handleServiceError(error,res,next);}
 };
 
 export const getPostHandler = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -141,7 +169,8 @@ export const createPostHandler = async (req: Request, res: Response, next: NextF
       if (key !== "place_detail" && value.length < 2) { validationError(res, key, "Isi tidak boleh kosong."); return; }
       details[key] = value;
     }
-    const post = await createPost(req.user.userId, { ...input, ...details, location_name: location, caption });
+    const ecosystem=await saveCategory("ecosystem",input.ecosystem_type), condition=await saveCategory("condition",input.condition);
+    const post = await createPost(req.user.userId, { ...input, ...details, ecosystem_type:ecosystem.key,condition:condition.key,location_name: location, caption });
     sendSuccess(res, post, 201);
   } catch (error) { handleServiceError(error, res, next); }
 };
@@ -188,3 +217,4 @@ export const activityHandler = async (req: Request, res: Response, next: NextFun
     sendSuccess(res, await getActivity(req.user.userId, query.type, query.page, query.limit));
   } catch (error) { next(error); }
 };
+// --- end of Forum handlers ---

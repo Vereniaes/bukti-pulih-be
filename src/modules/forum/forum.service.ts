@@ -1,4 +1,8 @@
-// Persist Forum posts and comments and scope account history to its owner.
+// Todo:
+// -> save posts, ordered media and threaded comments
+// -> scope account history to its owner
+
+// --- Forum service ---
 import { createHash } from "node:crypto";
 import { Types } from "mongoose";
 import { UserModel } from "../auth/user.model.js";
@@ -45,6 +49,7 @@ const formatPost = (post: ForumPostRecord, author: ReturnType<typeof userView>, 
   time_ago: "",
   caption: post.caption,
   media: post.media,
+  media_items: post.media_items?.length ? post.media_items : [post.media],
   ...(post.location ? {
     location: { type: "Point" as const, coordinates: [...post.location.coordinates] as [number, number] },
     ecosystem_type: post.ecosystem_type, condition: post.condition, verification_status: post.verification_status,
@@ -76,7 +81,7 @@ const commentsCountByPost = async (ids: string[]) => {
 };
 
 export async function createPost(userId: string, input: {
-  location_name: string; region_key: ForumPostRecord["region_key"]; caption: string; media: ForumMedia; is_anonymous: boolean;
+  location_name: string; region_key: ForumPostRecord["region_key"]; caption: string; media: ForumMedia; media_items?: ForumMedia[]; is_anonymous: boolean;
   province?: string; city?: string; place_detail?: string;
   submission_id: string; location: NonNullable<ForumPostRecord["location"]>;
   ecosystem_type: NonNullable<ForumPostRecord["ecosystem_type"]>; condition: NonNullable<ForumPostRecord["condition"]>;
@@ -87,6 +92,7 @@ export async function createPost(userId: string, input: {
     input.location_name, input.region_key, input.caption, input.media.type, input.media.url, input.media.aspect_ratio,
     input.is_anonymous, input.location.coordinates, input.ecosystem_type, input.condition,
     ...([input.province, input.city, input.place_detail].some(value => value !== undefined) ? [input.province ?? "", input.city ?? "", input.place_detail ?? ""] : []),
+    ...(input.media_items && input.media_items.length > 1 ? ["media_items", input.media_items.slice(1).map(item => [item.type, item.url, item.aspect_ratio])] : []),
   ])).digest("hex");
   await ForumPostModel.init();
   // A retry reuses the first saved report; the unique index also covers simultaneous requests.

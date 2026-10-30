@@ -1,3 +1,7 @@
+// Todo:
+// -> Verify request validation and BNPB scheduling.
+
+// --- Security regression tests ---
 import assert from "node:assert/strict";
 import { once } from "node:events";
 import type { Server } from "node:http";
@@ -79,7 +83,7 @@ test("text sanitization strips active HTML while retaining ordinary text", () =>
 
 test("BNPB scheduling starts automatically and retains its six-hour cadence", async () => {
   const existing = new Set(cron.getTasks().keys());
-  initBnpbCronJob();
+  initBnpbCronJob("test");
   const tasks = [...cron.getTasks().values()].filter(task => !existing.has(task.id));
   assert.equal(tasks.length, 1);
   const task = tasks[0];
@@ -94,3 +98,4 @@ test("BNPB scheduling starts automatically and retains its six-hour cadence", as
     await task.destroy();
   }
 });
+// --- end of Security regression tests ---
