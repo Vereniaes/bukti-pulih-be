@@ -8,11 +8,12 @@ import { ENV } from "../../config/env.js";
 import { satelliteService } from "./satellite.service.js";
 
 // Purpose: Catch up after local downtime without duplicate provider requests.
-// Input: Sync operation and runtime mode. Output: Stoppable local task.
+// Input: Sync operation and runtime mode. Output: Local task with terminal drain.
 export function initSatelliteDevelopmentScheduler(sync = satelliteService.sync, mode: string = ENV.NODE_ENV) {
   if (mode !== "development") return;
   let pending: Promise<void> | undefined;
-  const run = () => pending ??= sync()
+  let draining = false;
+  const run = () => draining ? Promise.resolve() : pending ??= sync()
     .then(result => { console.info(JSON.stringify({ event: "satellite_sync", ...result })); })
     .catch(() => { console.error(JSON.stringify({ event: "satellite_sync", failed: true, error: "SYNC_UNAVAILABLE" })); })
     .finally(() => { pending = undefined; });
@@ -22,6 +23,11 @@ export function initSatelliteDevelopmentScheduler(sync = satelliteService.sync, 
   // Resume with the current slot if a sleeping or busy laptop missed a tick.
   task.on("execution:missed", () => { void run(); });
   void run();
-  return task;
+  return Object.assign(task, {
+    async stopAndDrain() {
+      draining = true;
+      try { await task.stop(); } finally { await pending; }
+    },
+  });
 }
 // --- end of Local satellite schedule ---

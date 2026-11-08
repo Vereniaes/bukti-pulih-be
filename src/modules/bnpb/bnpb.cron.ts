@@ -7,10 +7,11 @@ import { ENV } from "../../config/env.js";
 import { syncBnpbKarhutlaData } from "./bnpb.service.js";
 
 // Purpose: Keep local startup and delayed ticks on one refresh.
-// Input: Runtime mode and sync operation. Output: Stoppable six-hour task.
+// Input: Runtime mode and sync operation. Output: Six-hour task with terminal drain.
 export const initBnpbCronJob = (mode = ENV.NODE_ENV, sync = syncBnpbKarhutlaData) => {
   let pending: Promise<void> | undefined;
-  const refresh = () => pending ??= Promise.resolve().then(sync)
+  let draining = false;
+  const refresh = () => draining ? Promise.resolve() : pending ??= Promise.resolve().then(sync)
     .then(snapshot => {
       if (snapshot.sync_failed) console.warn("[Cron Worker] Pembaruan BNPB gagal.");
       else console.log("[Cron Worker] Sinkronisasi terjadwal berhasil diperbarui.");
@@ -24,6 +25,11 @@ export const initBnpbCronJob = (mode = ENV.NODE_ENV, sync = syncBnpbKarhutlaData
   }
 
   console.log("[Cron Worker] Background worker BNPB Karhutla diaktifkan (jadwal: 0 */6 * * *).");
-  return task;
+  return Object.assign(task, {
+    async stopAndDrain() {
+      draining = true;
+      try { await task.stop(); } finally { await pending; }
+    },
+  });
 };
 // --- end of BNPB schedule ---

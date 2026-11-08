@@ -108,7 +108,8 @@ graph TD
 ### 1. Sistem & Pemantauan Kesehatan
 | Metode | Endpoint | Deskripsi |
 | :--- | :--- | :--- |
-| `GET` | `/health` | Memeriksa status hidup layanan Cloud Run dan koneksi MongoDB |
+| `GET` | `/health` | Memeriksa proses hidup; tidak memeriksa MongoDB |
+| `GET` | `/ready` | 200 jika MongoDB siap dan layanan tidak drain; selain itu 503, tanpa cache |
 
 ### 2. Autentikasi Passwordless OTP
 | Metode | Endpoint | Deskripsi |

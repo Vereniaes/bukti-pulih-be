@@ -6,6 +6,7 @@ import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { ENV } from "./config/env.js";
+import { isDatabaseReady } from "./config/database.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 
 import { plotRoutes } from "./modules/plots/plot.routes.js";
@@ -26,7 +27,7 @@ import { weatherRoutes } from "./modules/weather/weather.routes.js";
 import { hotspotRoutes } from "./modules/hotspots/hotspot.routes.js";
 import { hazardRoutes } from "./modules/hazards/hazard.routes.js";
 
-export function createApp(options: { emailAuth?: EmailAuthService; locations?: LocationService } = {}): Application {
+export function createApp(options: { emailAuth?: EmailAuthService; locations?: LocationService; isDraining?: () => boolean } = {}): Application {
 const app: Application = express();
 
 app.use(
@@ -54,6 +55,17 @@ app.get("/health", (_req: Request, res: Response) => {
     service: "bukti-pulih-be",
     timestamp: new Date().toISOString(),
   });
+});
+
+app.get("/ready", async (_req, res, next) => {
+  try {
+    const ready = !options.isDraining?.() && await isDatabaseReady() && !options.isDraining?.();
+    res.set("Cache-Control", "no-store").status(ready ? 200 : 503).json({
+      status: ready ? "ready" : "unavailable",
+      service: "bukti-pulih-be",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) { next(error); }
 });
 
 app.use("/api/v1/plots", plotRoutes);
